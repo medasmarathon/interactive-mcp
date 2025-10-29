@@ -37,31 +37,13 @@ const capabilityInfo: ToolCapabilityInfo = {
 // Define description conforming to ToolRegistrationDescription
 const registrationDescription: ToolRegistrationDescription = (
   globalTimeoutSeconds: number,
-) => `<description>
-Send a question to the user via a pop-up command prompt. **Crucial for clarifying requirements, confirming plans, or resolving ambiguity.**
-You should call this tool whenever it has **any** uncertainty or needs clarification or confirmation, even for trivial or silly questions.
-Feel free to ask anything! **Proactive questioning is preferred over making assumptions.**
-</description>
+) => `Interactive feedback collection tool for LLM agents.
 
-<importantNotes>
-- (!important!) **Use this tool FREQUENTLY** for any question that requires user input or confirmation.
-- (!important!) Continue to generate existing messages after user answers.
-- (!important!) Provide predefined options for quick selection if applicable.
-- (!important!) **Essential for validating assumptions before proceeding with significant actions (e.g., code edits, running commands).**
-</importantNotes>
-
-<whenToUseThisTool>
-- When you need clarification on user requirements or preferences
-- When multiple implementation approaches are possible and user input is needed
-- **Before making potentially impactful changes (code edits, file operations, complex commands)**
-- When you need to confirm assumptions before proceeding
-- When you need additional information not available in the current context
-- When validating potential solutions before implementation
-- When facing ambiguous instructions that require clarification
-- When seeking feedback on generated code or solutions
-- When needing permission to modify critical files or functionality
-- **Whenever you feel even slightly unsure about the user's intent or the correct next step.**
-</whenToUseThisTool>
+    USAGE RULES:
+    1. During any process, task, or conversation, whether asking, replying, or completing phased tasks, you must call this tool to ask for feedback.
+    2. Unless receiving termination instructions, all steps must repeatedly call this tool.
+    3. Whenever user feedback is received, if the feedback content is not empty, you must call this tool again and adjust behavior based on the feedback content.
+    4. Only when the user explicitly indicates "end" or "no more interaction needed" can you stop calling this tool, and the process is considered complete.
 
 <features>
 - Pop-up command prompt display for user input
@@ -74,9 +56,6 @@ Feel free to ask anything! **Proactive questioning is preferred over making assu
 <bestPractices>
 - Keep questions concise and specific
 - Provide clear options when applicable
-- Do not ask the question if you have another tool that can answer the question
-  - e.g. when you searching file in the current repository, do not ask the question "Do you want to search for a file in the current repository?"
-  - e.g. prefer to use other tools to find the answer (Cursor tools or other MCP Server tools)
 - Limit questions to only what's necessary **to resolve the uncertainty**
 - Format complex questions into simple choices
 - Reference specific code or files when relevant
