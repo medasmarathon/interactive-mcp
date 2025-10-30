@@ -124,8 +124,6 @@ if (isToolEnabled('request_user_input')) {
       const answer = await getCmdWindowInput(
         projectName,
         promptMessage,
-        globalTimeoutSeconds,
-        true,
         predefinedOptions,
       );
 

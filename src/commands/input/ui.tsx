@@ -1,6 +1,5 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 import { render, Box, Text, useApp } from 'ink';
-import { ProgressBar } from '@inkjs/ui';
 import fs from 'fs/promises';
 import path from 'path'; // Import path module
 import os from 'os'; // Import os module for tmpdir
@@ -10,19 +9,14 @@ import { InteractiveInput } from '../../components/InteractiveInput.js'; // Impo
 interface CmdOptions {
   projectName?: string;
   prompt: string;
-  timeout: number;
-  showCountdown: boolean;
-  sessionId: string; // Should always be present now
-  outputFile: string; // Should always be present now
-  heartbeatFile: string; // Should always be present now
+  sessionId: string;
+  outputFile: string;
   predefinedOptions?: string[];
 }
 
 // Define defaults separately
 const defaultOptions = {
   prompt: 'Enter your response:',
-  timeout: 30,
-  showCountdown: false,
   projectName: undefined,
   predefinedOptions: undefined,
 };
@@ -52,11 +46,7 @@ const readOptionsFromFile = async (): Promise<CmdOptions> => {
     const parsedOptions = JSON.parse(optionsData) as Partial<CmdOptions>; // Parse as partial
 
     // Validate required fields after parsing
-    if (
-      !parsedOptions.sessionId ||
-      !parsedOptions.outputFile ||
-      !parsedOptions.heartbeatFile
-    ) {
+    if (!parsedOptions.sessionId || !parsedOptions.outputFile) {
       throw new Error('Required options missing in options file.');
     }
 
@@ -64,9 +54,8 @@ const readOptionsFromFile = async (): Promise<CmdOptions> => {
     return {
       ...defaultOptions,
       ...parsedOptions,
-      sessionId: parsedOptions.sessionId, // Ensure these are strings
+      sessionId: parsedOptions.sessionId,
       outputFile: parsedOptions.outputFile,
-      heartbeatFile: parsedOptions.heartbeatFile,
     } as CmdOptions;
   } catch (error) {
     logger.error(
@@ -128,73 +117,12 @@ interface AppProps {
 
 const App: FC<AppProps> = ({ options: appOptions }) => {
   const { exit } = useApp();
-  const {
-    projectName,
-    prompt,
-    timeout,
-    showCountdown,
-    outputFile,
-    heartbeatFile,
-    predefinedOptions,
-  } = appOptions;
-
-  const [timeLeft, setTimeLeft] = useState(timeout);
+  const { projectName, prompt, outputFile, predefinedOptions } = appOptions;
 
   // Clear console only once on mount
   useEffect(() => {
     console.clear();
   }, []);
-
-  // Handle countdown and auto-exit on timeout
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          writeResponseToFile(outputFile, '__TIMEOUT__') // Use outputFile from props
-            .catch((err) => logger.error('Failed to write timeout file:', err))
-            .finally(() => exit()); // Use Ink's exit for timeout
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Add heartbeat interval
-    let heartbeatInterval: NodeJS.Timeout | undefined;
-    if (heartbeatFile) {
-      heartbeatInterval = setInterval(async () => {
-        try {
-          // Touch the file (create if not exists, update mtime if exists)
-          const now = new Date();
-          await fs.utimes(heartbeatFile, now, now);
-        } catch (err: unknown) {
-          // If file doesn't exist, try to create it
-          if (
-            err &&
-            typeof err === 'object' &&
-            'code' in err &&
-            (err as { code: string }).code === 'ENOENT'
-          ) {
-            try {
-              await fs.writeFile(heartbeatFile, '', 'utf8');
-            } catch (createErr) {
-              // Ignore errors creating heartbeat file (e.g., permissions)
-            }
-          } else {
-            // Ignore other errors writing heartbeat file
-          }
-        }
-      }, 1000); // Update every second
-    }
-
-    return () => {
-      clearInterval(timer);
-      if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
-      }
-    };
-  }, [exit, outputFile, heartbeatFile, timeout]); // Added timeout to dependencies
 
   // Handle final submission
   const handleSubmit = (value: string) => {
@@ -210,8 +138,6 @@ const App: FC<AppProps> = ({ options: appOptions }) => {
   const handleInputSubmit = (_questionId: string, value: string) => {
     handleSubmit(value);
   };
-
-  const progressValue = (timeLeft / timeout) * 100;
 
   return (
     <Box
@@ -233,12 +159,6 @@ const App: FC<AppProps> = ({ options: appOptions }) => {
         predefinedOptions={predefinedOptions}
         onSubmit={handleInputSubmit}
       />
-      {showCountdown && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="yellow">Time remaining: {timeLeft}s</Text>
-          <ProgressBar value={progressValue} />
-        </Box>
-      )}
     </Box>
   );
 };

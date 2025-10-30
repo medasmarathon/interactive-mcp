@@ -1,10 +1,10 @@
 {
-  "name": "interactive-mcp",
+  "name": "my-interactive-mcp",
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "interactive-mcp": "dist/index.js"
+    "my-interactive-mcp": "dist/index.js"
   },
   "files": [
     "dist",

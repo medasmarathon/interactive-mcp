@@ -35,9 +35,7 @@ const capabilityInfo: ToolCapabilityInfo = {
 };
 
 // Define description conforming to ToolRegistrationDescription
-const registrationDescription: ToolRegistrationDescription = (
-  globalTimeoutSeconds: number,
-) => `Interactive feedback collection tool for LLM agents.
+const registrationDescription: ToolRegistrationDescription = `Interactive feedback collection tool for LLM agents.
 
     USAGE RULES:
     1. During any process, task, or conversation, whether asking, replying, or completing phased tasks, you must call this tool to ask for feedback.
@@ -47,7 +45,7 @@ const registrationDescription: ToolRegistrationDescription = (
 
 <features>
 - Pop-up command prompt display for user input
-- Returns user response or timeout notification (timeout defaults to ${globalTimeoutSeconds} seconds))
+- Waits indefinitely for user response until they provide input
 - Maintains context across user interactions
 - Handles empty responses gracefully
 - Properly formats prompt with project context
